@@ -6,7 +6,7 @@ typedef struct shape_t {
     unsigned int share_1;
 
     char * ip_2;
-    unsigned int share_2;
+    unsigned int share_2 = 0;
 
     int do_shape;
 } shape_t;
