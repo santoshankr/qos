@@ -4,11 +4,6 @@
 #include <dirent.h>
 #include <unistd.h>
 
-//
-// Does this work?
-//
-
-
 #define URL_MAX_LENGTH 100
 #define IPA_MAX_LENGTH 100
 #define SSZ_MAX_LENGTH 100
