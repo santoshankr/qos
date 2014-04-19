@@ -13,23 +13,23 @@ typedef struct source_t {
 } source;
 
 typedef struct client_t {
-	char ip[IPA_MAX_LENGTH];
-	char screensize[SSZ_MAX_LENGTH];
-	int num_sources;
-	source * sources;
+    char ip[IPA_MAX_LENGTH];
+    char screensize[SSZ_MAX_LENGTH];
+    int num_sources;
+    source * sources;
 
-	/*
-	 * share is an integer from 0 to 255. We allocate a share to each client, and then round off to the nearest integer
-	 * on this scale.
-	 */
-	unsigned int share;
+    /*
+     * share is an integer from 0 to 255. We allocate a share to each client, and then round off to the nearest integer
+     * on this scale.
+     */
+    unsigned int share;
 } client;
 
 typedef struct client_link_t client_link;
 struct client_link_t {
-	client * c;
-	client_link * next;
-	client_link * prev;
+    client * c;
+    client_link * next;
+    client_link * prev;
 };
 
 void make_source_here(char * source_s, source * s){
@@ -52,26 +52,26 @@ void make_source_here(char * source_s, source * s){
 }
 
 source * make_source(char * source_s){
-	source * s = malloc(sizeof(source));
+    source * s = malloc(sizeof(source));
 
-	/*
-	 *  Parse input format : URL BITRATE 
-	 */
-	char * url = strtok(source_s, " ");
-	char * bitrate = strtok(NULL, " ");
+    /*
+     *  Parse input format : URL BITRATE 
+     */
+    char * url = strtok(source_s, " ");
+    char * bitrate = strtok(NULL, " ");
 
-	/*
-	 *  Make sure URL length is less than URL_MAX_LENGTH, truncate automatically
-	 */
-	int url_len = ((url_len=strlen(url)) < URL_MAX_LENGTH)? url_len : URL_MAX_LENGTH;
+    /*
+     *  Make sure URL length is less than URL_MAX_LENGTH, truncate automatically
+     */
+    int url_len = ((url_len=strlen(url)) < URL_MAX_LENGTH)? url_len : URL_MAX_LENGTH;
 
-	/*
-	 *  Safely populate 
-	 */
-	strncpy(s->url, url, url_len);
-	s->bitrate = atoi(bitrate);
+    /*
+     *  Safely populate 
+     */
+    strncpy(s->url, url, url_len);
+    s->bitrate = atoi(bitrate);
 
-	return s;
+    return s;
 }
 
 unsigned int link_capacity;
@@ -81,67 +81,67 @@ client_link * head = NULL;
 client_link * tail = NULL;
 
 void remove_client(client *c){
-	client_link * cur = head; 
+    client_link * cur = head; 
     client_link * prev = NULL;
-	while(cur != NULL){
-		if(strncmp(cur->c->ip, c->ip, IPA_MAX_LENGTH)==0){
-			if (prev == NULL){
-				head = cur->next;
-				/*
-				 * It's handle's job to free the client structure!
-				 */
-				free(cur);
+    while(cur != NULL){
+        if(strncmp(cur->c->ip, c->ip, IPA_MAX_LENGTH)==0){
+            if (prev == NULL){
+                head = cur->next;
+                /*
+                 * It's handle's job to free the client structure!
+                 */
+                free(cur);
                 num_clients--;
-				return;
-			}
-			else if(cur->next == NULL){
-				tail = prev;
-				free(cur);
+                return;
+            }
+            else if(cur->next == NULL){
+                tail = prev;
+                free(cur);
                 num_clients--;
-				return;
-			}
-			else{
-				prev->next = cur->next;
-				free(cur);
+                return;
+            }
+            else{
+                prev->next = cur->next;
+                free(cur);
                 num_clients--;
-				return;
-			}
-		}
-		prev = cur;
-		cur = cur->next;
-	}
+                return;
+            }
+        }
+        prev = cur;
+        cur = cur->next;
+    }
 }
 
 /*
  * Get client by IP address
  */
 client * get_client(char *ip){
-	client_link * cur = head;
-	while(cur != NULL){
-		if(strncmp(cur->c->ip, ip, IPA_MAX_LENGTH)==0){
-			return cur->c;
-		}
-		cur = cur->next;
-	}
-	return NULL;
+    client_link * cur = head;
+    while(cur != NULL){
+        if(strncmp(cur->c->ip, ip, IPA_MAX_LENGTH)==0){
+            return cur->c;
+        }
+        cur = cur->next;
+    }
+    return NULL;
 }
 
 void insert_client(client * c){
-	client_link * cl = malloc(sizeof(client_link));
-	cl -> c = c;
+    client_link * cl = malloc(sizeof(client_link));
+    cl -> c = c;
 
-	if(tail == NULL){
-		head = cl;
-		tail = cl;
-		cl -> prev = NULL;
-		cl -> next = NULL;
-	}
-	else{
-		tail->next = cl;
-		cl->prev = tail;
-		tail = cl;
-	}
-	num_clients++;
+    if(tail == NULL){
+        head = cl;
+        tail = cl;
+        cl -> prev = NULL;
+        cl -> next = NULL;
+    }
+    else{
+        tail->next = cl;
+        cl->prev = tail;
+        tail = cl;
+    }
+    num_clients++;
 }
 
 #define MAXPATHLENGTH 100
@@ -153,42 +153,40 @@ void insert_client(client * c){
 #define DIRPATH "/home/santosh/git/qos/clients/"
 
 int handleClient(char * ip){
-        char filepath[MAXPATHLENGTH];
-        strcpy(filepath, DIRPATH);
-        strncat(filepath, ip, INPUT_MAX_LENGTH);
-	FILE * r = fopen(filepath, "r");
+    char filepath[MAXPATHLENGTH];
+    strcpy(filepath, DIRPATH);
+    strncat(filepath, ip, INPUT_MAX_LENGTH);
+    FILE * r = fopen(filepath, "r");
 
-	printf("\nYour IP: %s\n", ip);
+    /*
+     *  Check if we already know this client
+     */
+    client * c = get_client(ip);
+    if(!c){
+        /*
+         * Client does not exist. Create one.
+         */
+        // printf("Creating source\n");
+        c = malloc(sizeof(client));
+        c->num_sources = 0;
+        c->share = 0;
+        strncpy(c->ip, ip, IPA_MAX_LENGTH);
+        insert_client(c);
+    }
+    else{
+        /*
+         * Free previous allocations for sources
+         * We'll only store new sources
+         */
+        // printf("Source exists\n");
+        free(c->sources);
+        c->num_sources = 0;
+        c->share = 0;
+    }
 
-	/*
-	 *  Check if we already know this client
-	 */
-	client * c = get_client(ip);
-	if(!c){
-		/*
-		 * Client does not exist. Create one.
-		 */
-		printf("Creating source\n");
-		c = malloc(sizeof(client));
-		c->num_sources = 0;
-		c->share = 0;
-		strncpy(c->ip, ip, IPA_MAX_LENGTH);
-		insert_client(c);
-	}
-	else{
-		/*
-		 * Free previous allocations for sources
-		 * We'll only store new sources
-		 */
-		printf("Source exists\n");
-		free(c->sources);
-		c->num_sources = 0;
-		c->share = 0;
-	}
-
-	/*
-	 * Get the number of source records upcoming
-	 */
+    /*
+     * Get the number of source records upcoming
+     */
         char input[INPUT_MAX_LENGTH];
         fgets(input, INPUT_MAX_LENGTH, r); 
         int num_sources = atoi(input);
@@ -197,34 +195,25 @@ int handleClient(char * ip){
                 printf("Bad number of sources\n");
                 return -1;
         }
-	c->num_sources = num_sources;
-	c->sources = malloc(sizeof(source) * num_sources);
-	printf("Sources: %d\n", num_sources);
+    c->num_sources = num_sources;
+    c->sources = malloc(sizeof(source) * num_sources);
+    // printf("Sources: %d\n", num_sources);
 
-	/*
-	 * Get the screensize of the device. This also copies the /n at the end apparently
-	 */
-	fgets(input, INPUT_MAX_LENGTH, r);
-	strncpy(c->screensize, input, SSZ_MAX_LENGTH);
-	printf("Screensize: %s\b", input);
+    /*
+     * Get the screensize of the device. This also copies the /n at the end apparently
+     */
+    fgets(input, INPUT_MAX_LENGTH, r);
+    strncpy(c->screensize, input, SSZ_MAX_LENGTH);
+    // printf("Screensize: %s\b", input);
 
-	int i;
-	for(i=0;i<num_sources;i++){
-		fgets(input, INPUT_MAX_LENGTH, r);
-		make_source_here(input, &c->sources[i]);
-	}
+    int i;
+    for(i=0;i<num_sources;i++){
+        fgets(input, INPUT_MAX_LENGTH, r);
+        make_source_here(input, &c->sources[i]);
+    }
 
-	printf("List of clients:\n");
-	
-	client_link * cur = head;
-	while(cur!=NULL){
-		client * c = cur->c;
-		printf("Client IP: %s num_sources: %d ScreenSize %s", c->ip, c->num_sources, c->screensize);
-		cur = cur->next;
-	}
-
-	fclose(r);
-	return 0;
+    fclose(r);
+    return 0;
 }
 
 typedef struct shape_t {
@@ -238,18 +227,28 @@ typedef struct shape_t {
 } shape_t;
 shape_t shape;
 
+void list_clients(){
+       printf("List of clients:\n");
+    client_link * cur = head;
+    while(cur!=NULL){
+        client * c = cur->c;
+        printf("Client IP: %s num_sources: %d ScreenSize %s", c->ip, c->num_sources, c->screensize);
+        cur = cur->next;
+    } 
+}
+
 void allocator(){
-	printf("Allocating\n");
-	if(num_clients == 0){
-		return;	
-	}
-	int fair_share = 255 / num_clients;
-	client_link * cur = head;
-	while(cur!=NULL){
-		client * c = cur->c;
-		c->share = fair_share;
-		cur =  cur->next;
-	}
+    printf("Allocating\n");
+    if(num_clients == 0){
+        return;    
+    }
+    int fair_share = 255 / num_clients;
+    client_link * cur = head;
+    while(cur!=NULL){
+        client * c = cur->c;
+        c->share = fair_share;
+        cur =  cur->next;
+    }
 
     if(num_clients < 2){
         shape.do_shape = 0;
@@ -290,53 +289,55 @@ void allocator(){
 #define MAX_COMMAND_LENGTH 500
 void issue_shaper(){
     if (!shape.do_shape){
-        printf("Quite shapely already\n");    
+        printf("Quite shapely already\n");  
+        return;  
     }
 
-	printf("Shaping: ");
-	char cmd[MAX_COMMAND_LENGTH];
-    snprintf("./shaper.sh %s %d %s %d\n", MAX_COMMAND_LENGTH, shape.ip_1, shape.share_1, shape.ip_2, shape.share_2);
+    printf("Shaping: ");
+    char cmd[MAX_COMMAND_LENGTH];
+    snprintf(cmd, MAX_COMMAND_LENGTH, "./shaper.sh %s %d %s %d\n", shape.ip_1, shape.share_1, shape.ip_2, shape.share_2);
 
     printf(cmd);
 }
 
 int reset(){
-	/*
-	 * Find a list of all clients in the directory
-	 * For each client, create the data structure
-	 * Periodically recreate these structures
-	 *
-	 * This function can also putentially be called
-	 * from outside, by having another process issue
-	 * an interrupt, which is trapped here.
-	 */
+    /*
+     * Find a list of all clients in the directory
+     * For each client, create the data structure
+     * Periodically recreate these structures
+     *
+     * This function can also putentially be called
+     * from outside, by having another process issue
+     * an interrupt, which is trapped here.
+     */
 
-        DIR *dir;
-        struct dirent *ent;
-        if ((dir = opendir (DIRPATH)) != NULL) {
-                while ((ent = readdir (dir)) != NULL) {
-			/*
-			 *  Make sure it's not . or ..
-			 */
-			if(strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..")){
-				char * fname = ent->d_name;
-				handleClient(fname);
-			}
-                }
-                closedir (dir);
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (DIRPATH)) != NULL) {
+            while ((ent = readdir (dir)) != NULL) {
+        /*
+         *  Make sure it's not . or ..
+         */
+        if(strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..")){
+            char * fname = ent->d_name;
+            handleClient(fname);
         }
-        else {
-                /* could not open directory */
-                perror ("Could not open directory!");
-                return EXIT_FAILURE;
+            }
+            closedir (dir);
+    }
+    else {
+            /* could not open directory */
+            perror ("Could not open directory!");
+            return EXIT_FAILURE;
         }
-	allocator();
-	issue_shaper();
+    list_clients();
+    allocator();
+    issue_shaper();
 
-	return;
+    return;
 }
 
-#define SWEEP_TIME 30
+#define SWEEP_TIME 5
 int main(){
     /*
      *  Initialize shape parameters
@@ -346,10 +347,11 @@ int main(){
 
     shape.share_1 = 0;
     shape.share_2 = 0;
+    
 
-    while(1){
-	    reset();
-	    sleep(SWEEP_TIME);
-	    printf("Initiating sweep\n");
+    while(1){        
+        printf("\nInitiating sweep\n");
+        reset();
+        sleep(SWEEP_TIME);
     }
 }
