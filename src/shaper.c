@@ -280,6 +280,21 @@ void allocator(){
     shape.do_shape = 1;
 }
 
+void scary_printf(char * cmd){
+    int i=0;
+    printf("\n");
+    for(i=0; i<50; i++){
+        printf("*");   
+    }
+    printf("\n");
+    printf("%s\n", cmd);
+    for(i=0; i<50; i++){
+        printf("*");    
+    }
+    printf("\n");
+    printf(cmd);
+}
+
 /*
  *
  *  Call the shell script with arguments
@@ -295,9 +310,10 @@ void issue_shaper(){
 
     printf("Shaping: ");
     char cmd[MAX_COMMAND_LENGTH];
-    snprintf(cmd, MAX_COMMAND_LENGTH, "./shaper.sh %s %d %s %d\n", shape.ip_1, shape.share_1, shape.ip_2, shape.share_2);
+    snprintf(cmd, MAX_COMMAND_LENGTH, "/home/santosh/git/qos/bin/shaper.sh %s %d %s %d", shape.ip_1, shape.share_1, shape.ip_2, shape.share_2);
 
-    printf(cmd);
+    scary_printf(cmd);
+    system(cmd);
 }
 
 int reset(){
