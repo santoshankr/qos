@@ -41,6 +41,7 @@ chrome.webRequest.onCompleted.addListener(function(details){
 
     if (originalRequest == 0){
         console.log("Quitting, can't do this twice!");
+        originalRequest = 1;
     	return;
     }
 

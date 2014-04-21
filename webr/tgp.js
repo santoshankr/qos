@@ -33,21 +33,21 @@ function parseDownloadable(data){
     return {'bitrate':bitrate, 'urls':urls};
 }
 
-var server_location = 'http://127.0.0.1/cgi-bin/register.cgi'
+var server_location = 'http://192.168.142.1/cgi-bin/register.cgi'
 var screen_size = screen.width + '.' + screen.height
 
 function pass(data, textStatus, jqXHR){
-    console.log('pass!')
+    console.log(data)
 }
 
 function register(message){
-    console.log(server_ip)
+    console.log(server_location)
     console.log(message)
 
     $.ajax({
   	type: "POST",
         data: message,
-  	url: server_ip,
+  	url: server_location,
         dataType: 'text',
   	success: pass,
 	error: pass
