@@ -36,7 +36,7 @@ void make_source_here(char * source_s, source * s){
         /*
          *  Parse input format : URL BITRATE 
          */
-        char * url = strtok(source_s, " ");
+        char * url = strtok(source_s, "\t");
         char * bitrate = strtok(NULL, " ");
 
         /*
@@ -166,7 +166,7 @@ int handleClient(char * ip){
         /*
          * Client does not exist. Create one.
          */
-        // printf("Creating source\n");
+        //printf("Creating source\n");
         c = malloc(sizeof(client));
         c->num_sources = 0;
         c->share = 0;
@@ -178,7 +178,7 @@ int handleClient(char * ip){
          * Free previous allocations for sources
          * We'll only store new sources
          */
-        // printf("Source exists\n");
+        //printf("Source exists\n");
         free(c->sources);
         c->num_sources = 0;
         c->share = 0;
@@ -197,14 +197,14 @@ int handleClient(char * ip){
         }
     c->num_sources = num_sources;
     c->sources = malloc(sizeof(source) * num_sources);
-    // printf("Sources: %d\n", num_sources);
+    //printf("Sources: %d %d\n", num_sources);
 
     /*
      * Get the screensize of the device. This also copies the /n at the end apparently
      */
     fgets(input, INPUT_MAX_LENGTH, r);
     strncpy(c->screensize, input, SSZ_MAX_LENGTH);
-    // printf("Screensize: %s\b", input);
+    //printf("Screensize: %s\b", input);
 
     int i;
     for(i=0;i<num_sources;i++){
@@ -222,8 +222,6 @@ typedef struct shape_t {
 
     char ip_2[IPA_MAX_LENGTH];
     unsigned int share_2;
-
-    int do_shape;
 } shape_t;
 shape_t shape;
 
@@ -237,10 +235,13 @@ void list_clients(){
     } 
 }
 
-void allocator(){
+#define NO_SHAPER 0
+#define SINGLE_SHAPER 1
+#define FAIR_SHAPER 2 
+int allocator(){
     printf("Allocating\n");
     if(num_clients == 0){
-        return;    
+        return NO_SHAPER;    
     }
     int fair_share = 255 / num_clients;
     client_link * cur = head;
@@ -250,15 +251,22 @@ void allocator(){
         cur =  cur->next;
     }
 
-    if(num_clients < 2){
-        shape.do_shape = 0;
-        return;
+    if(num_clients == 0){
+        return NO_SHAPER;
     }
 
-    char * ip_1 = head->c->ip;
-    char * ip_2 = head->next->c->ip;
-
+    char * ip_1 = head->c->ip;    
     unsigned int share_1 = head->c->share;
+    if(num_clients == 1){
+        if ( !strncmp(ip_1, shape.ip_1, IPA_MAX_LENGTH) )
+            if( share_1 == shape.share_1 )
+                return NO_SHAPER;
+        strncpy(shape.ip_1, ip_1, IPA_MAX_LENGTH);
+        shape.share_1 = share_1;
+        return SINGLE_SHAPER;
+    }
+
+    char * ip_2 = head->next->c->ip;
     unsigned int share_2 = head->next->c->share;
     if ( !(strncmp(ip_1, shape.ip_1, IPA_MAX_LENGTH) || strncmp(ip_2, shape.ip_2, IPA_MAX_LENGTH)) ){
         /*
@@ -268,8 +276,7 @@ void allocator(){
          /*
           *  If both shares match
           */        
-            shape.do_shape = 0;
-            return;
+            return NO_SHAPER;
         }
     }
     
@@ -277,7 +284,7 @@ void allocator(){
     strncpy(shape.ip_2, ip_2, IPA_MAX_LENGTH);
     shape.share_1 = share_1;
     shape.share_2 = share_2;
-    shape.do_shape = 1;
+    return FAIR_SHAPER;
 }
 
 void scary_printf(char * cmd){
@@ -302,15 +309,19 @@ void scary_printf(char * cmd){
  *
  */
 #define MAX_COMMAND_LENGTH 500
-void issue_shaper(){
-    if (!shape.do_shape){
-        printf("Quite shapely already\n");  
-        return;  
-    }
-
+void fair_shaper(){
     printf("Shaping: ");
     char cmd[MAX_COMMAND_LENGTH];
     snprintf(cmd, MAX_COMMAND_LENGTH, "/home/santosh/git/qos/bin/shaper.sh %s %d %s %d", shape.ip_1, shape.share_1, shape.ip_2, shape.share_2);
+
+    scary_printf(cmd);
+    system(cmd);
+}
+
+void single_shaper(){
+    printf("Shaping: ");
+    char cmd[MAX_COMMAND_LENGTH];
+    snprintf(cmd, MAX_COMMAND_LENGTH, "/home/santosh/git/qos/bin/shaper1.sh %s %d", shape.ip_1, shape.share_1);
 
     scary_printf(cmd);
     system(cmd);
@@ -347,8 +358,11 @@ int reset(){
             return EXIT_FAILURE;
         }
     list_clients();
-    allocator();
-    issue_shaper();
+    int code = allocator();
+    
+    if ( code == NO_SHAPER) printf("Quite shapely already\n");
+    else if (code == SINGLE_SHAPER) single_shaper();
+    else if ( code == FAIR_SHAPER ) fair_shaper();
 
     return;
 }
