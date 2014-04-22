@@ -33,5 +33,5 @@ tc class add dev $IFACE parent 1: classid 1:1 htb rate ${CAPACITY}kbit burst 0
 #exit
 tc class add dev $IFACE parent 1:1 classid 1:2 htb rate ${BW_1}kbit burst 0
 tc class add dev $IFACE parent 1:1 classid 1:3 htb rate ${BW_2}kbit burst 0
-tc filter add dev $IFACE protocol ip parent 1:0 prio 0 u32 match ip src $CL_IP_1 flowid 1:2
-tc filter add dev $IFACE protocol ip parent 1:0 prio 0 u32 match ip src $CL_IP_2 flowid 1:3
+tc filter add dev $IFACE protocol ip parent 1:0 prio 0 u32 match ip dst $CL_IP_1 flowid 1:2
+tc filter add dev $IFACE protocol ip parent 1:0 prio 0 u32 match ip dst $CL_IP_2 flowid 1:3
