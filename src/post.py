@@ -3,7 +3,7 @@
 import requests
 import sys
 
-url = 'http://127.0.0.1:8000/cgi-bin/register.cgi?%s'
+url = 'http://192.168.142.1/cgi-bin/register.cgi?%s'
 
 #
 # Run as :
@@ -27,7 +27,7 @@ N = min(len(urls), len(bitrates))
 data = str(N) + '\n'
 data += options.screensize + '\n'
 for i in xrange(N):
-	data += urls[i] + ' ' + bitrates[i] + '\n'
+	data += urls[i] + '\t' + bitrates[i] + '\n'
 
 r = requests.post(url % options.ipaddress, data)
 
