@@ -11,7 +11,7 @@
 int storeRequest(){
      printf("Content-Type: text/plain;charset=us-ascii\n\n");
 
-     char * ip = getenv("QUERY_STRING");
+     char * ip = getenv("REMOTE_ADDR");
 
      printf("\nYour IP: %s\n", ip);
 
