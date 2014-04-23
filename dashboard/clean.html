@@ -18,6 +18,24 @@
 <script src="highcharts.js"></script>
 <script src="exporting.js"></script>
 <script>
+var s1num = 0;
+var s1nums = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 179, 0, 0, 0, 0, 111, 0, 0, 0, 0, 0, 11708, 0, 0, 0, 0, 500, 267, 0, 0, 0, 0, 0, 0, 293, 0, 21367, 5647, 0, 2076979, 1974652, 721199, 718463, 741113, 672531, 724000, 674255, 793230, 726722, 728370, 726775, 728536, 727145, 726627, 724695, 729259, 725448, 727026, 695040, 641191, 10136, 584992, 706193, 726562, 726757, 715396, 718415, 603657, 765488, 746371, 725729, 726521, 722792, 729762, 727662, 718064, 727320, 726424, 726502];
+function gets1Next(){
+	xx = s1num;
+	yy = s1nums[s1num/2];
+	s1num += 2;
+	return {'x': xx, 'y': yy};
+}
+
+var s2num = 0;
+var s2nums = [0, 0, 112, 0, 0, 352, 9862, 996487, 1483293, 1483911, 1484589, 1483269, 1482912, 1482481, 1485388, 1484634, 1483001, 1485824, 1483762, 1484313, 1484075, 1483314, 989732, 1484654, 1481319, 1484400, 1485496, 1485180, 1484783, 1485115, 1485481, 1485788, 1484511, 1484731, 1484987, 1485648, 1483892, 1482575, 1483415, 1483686, 989241, 1485696, 944723, 726896, 725371, 725874, 667204, 723830, 744662, 769173, 721766, 729792, 727271, 725903, 726972, 726518, 725448, 726867, 727307, 726896, 725633, 726896, 725860, 725981, 726896, 725060, 726371, 725725, 685213, 750174, 716304, 742755, 725688, 726319, 714889, 727195, 725998, 726107, 724000, 729646, 724443];
+function gets2Next(){
+	xx = s2num;
+	yy = s2nums[s2num/2];
+	s2num += 2;
+	return {'x': xx, 'y': yy};
+}
+
 $(function () {
     $(document).ready(function() {
         Highcharts.setOptions({
@@ -29,34 +47,37 @@ $(function () {
         var chart;
         $('#container').highcharts({
             chart: {
-                index: 0,
                 type: 'spline',
                 animation: Highcharts.svg, // don't animate in old IE
                 marginRight: 10,
                 events: {
                     load: function() {
-                        var series = this.series[0];
+                        var series1 = this.series[0];
                         setInterval(function() {
-                            var ind = this.index;
-                            console.log(this.getElementByName('Ya'));
-                            var x = (new Date()).getTime(), // current time
-                                y = ind % 6 ;//y = Math.random();
-                            series.addPoint([x, y], true, true);
-                        }, 1000);
+                            var next = gets1Next();
+                            var x = next['x']
+                            var y = next['y']
+                            series1.addPoint([x, y], true, true);
+                        }, 2000);
+                        var series2 = this.series[1];
+                        setInterval(function() {
+                            var next = gets2Next();
+                            var x = next['x']
+                            var y = next['y']
+                            series2.addPoint([x, y], true, true);
+                        }, 2000);
                     }
                 }
             },
-
             title: {
                 text: 'Video throughput'
             },
             xAxis: {
-                type: 'datetime',
                 tickPixelInterval: 150
             },
             yAxis: {
                 min: 0,
-                max: 5,
+                max: 2000000,
                 title: {
                     text: 'Value'
                 },
@@ -80,17 +101,38 @@ $(function () {
                 enabled: false
             },
             series: [{
-                name: 'Random data',
+                name: 'Client 1',
                 data: (function() {
                     // generate an array of random data
                     var data = [],
-                        time = (new Date()).getTime(),
                         i;
     
                     for (i = -19; i <= 0; i++) {
+	            	var next = gets1Next();
+	            	var xx = next['x']
+	            	var yy = next['y']
                         data.push({
-                            x: time + i * 1000,
-                            y: Math.random()
+                            x: xx,
+                            y: yy
+                        });
+                    }
+                    return data;
+                })()
+            },
+            {
+                name: 'Client 2',
+                data: (function() {
+                    // generate an array of random data
+                    var data = [],
+                        i;
+    
+                    for (i = -19; i <= 0; i++) {
+	            	var next = gets2Next();
+	            	var xx = next['x']
+	            	var yy = next['y']
+                        data.push({
+                            x: xx,
+                            y: yy
                         });
                     }
                     return data;
@@ -98,73 +140,6 @@ $(function () {
             }]
         });
 
-$('#container2').highcharts({
-            chart: {
-                type: 'spline',
-                animation: Highcharts.svg, // don't animate in old IE
-                marginRight: 10,
-                events: {
-                    load: function() {
-    
-                        // set up the updating of the chart each second
-                        var series = this.series[0];
-                        setInterval(function() {
-                            var x = (new Date()).getTime(), // current time
-                                y = Math.random();
-                            series.addPoint([x, y], true, true);
-                        }, 1000);
-                    }
-                }
-            },
-
-            title: {
-                text: 'Video bitrate'
-            },
-            xAxis: {
-                type: 'datetime',
-                tickPixelInterval: 150
-            },
-            yAxis: {
-                title: {
-                    text: 'Value'
-                },
-                plotLines: [{
-                    value: 0,
-                    width: 1,
-                    color: '#808080'
-                }]
-            },
-            tooltip: {
-                formatter: function() {
-                        return '<b>'+ this.series.name +'</b><br/>'+
-                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +'<br/>'+
-                        Highcharts.numberFormat(this.y, 2);
-                }
-            },
-            legend: {
-                enabled: false
-            },
-            exporting: {
-                enabled: false
-            },
-            series: [{
-                name: 'Random data',
-                data: (function() {
-                    // generate an array of random data
-                    var data = [],
-                        time = (new Date()).getTime(),
-                        i;
-    
-                    for (i = -19; i <= 0; i++) {
-                        data.push({
-                            x: time + i * 1000,
-                            y: Math.random()
-                        });
-                    }
-                    return data;
-                })()
-            }]
-        });
     });
     
 });
