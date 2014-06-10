@@ -379,8 +379,8 @@ int main(int argc, char **argv)
 	/* check for capture device name on command-line */
 	if (argc == 4) {
 		dev = argv[1];
-        ips[0] = argv[2];
-        ips[1] = argv[3];
+        	ips[0] = argv[2];
+        	ips[1] = argv[3];
 	}
 	else{
 		fprintf(stderr, "error: unrecognized command-line options\n\n");

@@ -9,6 +9,7 @@ sdata = [int(i.strip()) for i in s]
 
 l = min(len(rdata), len(sdata))
 
+print rdata[:l]
 print sdata[:l]
 exit(0)
 
